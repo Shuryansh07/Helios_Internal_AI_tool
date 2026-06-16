@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Process Architect — Helios Tech Labs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='flowcharts.css') }}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='heliosBurst.svg') }}">
+</head>
+<body>
+<div class="bg-atmosphere"></div>
+
+<div class="workspace">
+  <header class="appbar">
+    <div class="appbar-left">
+      <span class="brand-title">Helios Tech Labs</span>
+      <nav class="topnav">
+        <a href="{{ url_for('dashboard.dashboard') }}">Meetings</a>
+        <a href="{{ url_for('dashboard.capture') }}">Live Capture</a>
+        <a href="{{ url_for('index') }}">Proposals</a>
+        <a class="active" href="{{ url_for('dashboard.flowcharts') }}">Flowcharts</a>
+        <a href="{{ url_for('dashboard.insights') }}">Insights</a>
+      </nav>
+    </div>
+    <div class="appbar-right">
+      <a class="btn btn-primary new-project" href="{{ url_for('dashboard.flowcharts') }}">New Project</a>
+      <span class="avatar" title="{{ user_email }}">{{ (user_email or 'U')[0]|upper }}</span>
+    </div>
+  </header>
+
+  <div class="ws-body">
+    <!-- ============ SIDE NAV ============ -->
+    <aside class="sidenav" id="sidebar">
+      <div class="sn-profile">
+        <div class="logo-mark"><div class="star"><svg viewBox="0 0 100 100"><path d="M50 0L55 35L90 35L60 55L75 90L50 70L25 90L40 55L10 35L45 35Z"></path></svg></div><div class="core"><i></i></div></div>
+        <div class="sn-prof-text"><b>Helios Tech Labs</b><span class="mono">Pro Plan</span></div>
+        <button class="icon-btn" id="sideToggle" title="Toggle sidebar"><span class="material-symbols-outlined">dock_to_right</span></button>
+      </div>
+      <nav class="sn-nav">
+        <a class="sn-item" href="{{ url_for('dashboard.dashboard') }}"><span class="material-symbols-outlined">video_chat</span><span class="t">Meetings</span></a>
+        <a class="sn-item" href="{{ url_for('dashboard.capture') }}"><span class="material-symbols-outlined">graphic_eq</span><span class="t">Live Capture</span></a>
+        <a class="sn-item" href="{{ url_for('index') }}"><span class="material-symbols-outlined">description</span><span class="t">Proposals</span></a>
+        <a class="sn-item active" href="{{ url_for('dashboard.flowcharts') }}"><span class="material-symbols-outlined">account_tree</span><span class="t">Flowcharts</span></a>
+        <a class="sn-item" href="{{ url_for('dashboard.insights') }}"><span class="material-symbols-outlined">insights</span><span class="t">Insights</span></a>
+      </nav>
+      <div class="sn-foot" style="margin-top:auto">
+        <a class="sn-item" href="{{ url_for('logout') }}"><span class="material-symbols-outlined">logout</span><span class="t">Log out</span></a>
+      </div>
+    </aside>
+
+    <!-- ============ RECENT FLOWCHARTS COLUMN ============ -->
+    <section class="recent-col">
+      <div class="rc-head">
+        <span class="mono">Recent Flowcharts</span>
+        <button class="link-btn" id="fhClear">clear</button>
+      </div>
+      <div class="rc-scroll"><div class="fh-list" id="flowHist"></div></div>
+      <div class="rc-foot">
+        <button class="btn btn-ghost rc-all" id="viewAll"><span class="material-symbols-outlined" style="font-size:15px">history</span> View All History</button>
+      </div>
+    </section>
+
+    <!-- ============ MAIN: PROCESS ARCHITECT ============ -->
+    <main class="flow-main">
+      <section class="architect">
+        <div class="arch-head">
+          <h2>Process Architect</h2>
+          <p class="muted">Describe your workflow or upload a PRD to generate high-fidelity logic diagrams.</p>
+        </div>
+
+        <div class="prompt-card glass">
+          <div class="pc-bar"><span class="mono">AI Prompt Editor</span><span class="material-symbols-outlined">auto_awesome</span></div>
+          <textarea id="flowPrompt" rows="8" placeholder="Example: Design a customer onboarding flow for Helios Tech Labs. Start with user registration, followed by email verification. If successful, move to account setup…"></textarea>
+        </div>
+
+        <div class="upload-card" id="flowUpload">
+          <span class="material-symbols-outlined up-ic">upload_file</span>
+          <div class="up-title">Upload a proposal or PRD</div>
+          <div class="muted" style="font-size:11.5px">.pdf, .docx, .xlsx, .csv, .txt</div>
+          <button class="link-btn" id="flowBrowse">Browse files</button>
+          <input type="file" id="flowFile" accept=".pdf,.docx,.xlsx,.csv,.txt" multiple hidden>
+        </div>
+
+        <div class="mode-row">
+          <span class="mono">Output</span>
+          <div class="format-toggle" id="flowMode">
+            <button type="button" class="fmt-btn active" data-mode="diagram">Diagram</button>
+            <button type="button" class="fmt-btn" data-mode="image">AI Image</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary gen-btn" id="flowGen">
+          <span class="material-symbols-outlined">auto_awesome</span> Generate Flowchart
+        </button>
+        <div class="ai-status"><span class="sb-dot"></span><span class="mono" id="flowStatus">AI Status: Ready</span></div>
+
+        <div class="lib-block">
+          <div class="lib-row"><span class="wd-dot" id="libDot"></span><span class="mono">House-Style Library</span></div>
+          <div class="lib-detail muted" id="libDetail">Checking…</div>
+          <button class="btn btn-ghost lib-sync" id="libSync" disabled>Train / Sync</button>
+        </div>
+      </section>
+
+      <!-- canvas -->
+      <section class="canvas">
+        <div class="canvas-toolbar glass">
+          <div class="tb-grp">
+            <button class="icon-btn" id="zoomIn" title="Zoom in"><span class="material-symbols-outlined">zoom_in</span></button>
+            <span class="zoom-val mono" id="zoomVal">100%</span>
+            <button class="icon-btn" id="zoomOut" title="Zoom out"><span class="material-symbols-outlined">zoom_out</span></button>
+          </div>
+          <span class="tb-sep"></span>
+          <div class="tb-grp">
+            <button class="icon-btn active" id="panTool" title="Pan"><span class="material-symbols-outlined">pan_tool</span></button>
+            <button class="icon-btn" id="zoomReset" title="Fit"><span class="material-symbols-outlined">fit_screen</span></button>
+            <button class="icon-btn" id="dlPng" title="Download PNG"><span class="material-symbols-outlined">download</span></button>
+            <button class="icon-btn" id="dlSvg" title="Download SVG"><span class="material-symbols-outlined">image</span></button>
+          </div>
+          <span class="tb-sep"></span>
+          <div class="tb-grp colors" id="colorDots">
+            <span class="cdot active" data-color="cyan" style="background:#00e0ff" title="Cyan"></span>
+            <span class="cdot" data-color="violet" style="background:#dcb8ff" title="Violet"></span>
+            <span class="cdot" data-color="grey" style="background:#859397" title="Grey"></span>
+          </div>
+        </div>
+
+        <div class="canvas-scroll canvas-grid" id="canvasScroll">
+          <!-- animated empty-state placeholder -->
+          <div class="flow-empty" id="flowEmpty">
+            <svg class="empty-svg" viewBox="0 0 800 520" fill="none">
+              <path class="flow-line" d="M400 70 L400 140" stroke="rgba(0,224,255,.4)" stroke-width="2"/>
+              <path class="flow-line" d="M400 200 L400 270" stroke="rgba(0,224,255,.4)" stroke-width="2"/>
+              <path class="flow-line" d="M400 330 L250 400" stroke="rgba(0,224,255,.2)" stroke-width="1.5"/>
+              <path class="flow-line" d="M400 330 L550 400" stroke="rgba(0,224,255,.2)" stroke-width="1.5"/>
+              <g transform="translate(325,40)"><rect class="node-glow" width="150" height="40" rx="20" fill="rgba(0,224,255,.05)" stroke="#00e0ff" stroke-width="1.5"/><text x="75" y="25" text-anchor="middle" fill="#e1e2eb" font-size="12">User Lands</text></g>
+              <g transform="translate(310,140)"><rect class="node-glow" width="180" height="60" rx="12" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.1)"/><text x="90" y="35" text-anchor="middle" fill="#e1e2eb" font-size="13">Authentication</text></g>
+              <g transform="translate(330,270)"><path class="node-glow" d="M70 0 L140 35 L70 70 L0 35 Z" fill="rgba(119,1,208,.08)" stroke="#7701d0" stroke-width="1.5"/><text x="70" y="40" text-anchor="middle" fill="#e1e2eb" font-size="11">Valid Session?</text></g>
+              <g transform="translate(140,400)"><rect width="170" height="50" rx="8" fill="rgba(255,255,255,.02)" stroke="rgba(255,255,255,.05)"/><circle cx="12" cy="25" r="4" fill="#00e0ff" class="pulse-dot"/><text x="92" y="30" text-anchor="middle" fill="#bac9cd" font-size="12">Redirect to Login</text></g>
+              <g transform="translate(490,400)"><rect width="170" height="50" rx="8" fill="rgba(255,255,255,.02)" stroke="rgba(255,255,255,.05)"/><circle cx="158" cy="25" r="4" fill="#00e0ff" class="pulse-dot"/><text x="85" y="30" text-anchor="middle" fill="#bac9cd" font-size="12">Grant Access</text></g>
+            </svg>
+            <p>Describe a workflow and hit <b>Generate Flowchart</b> — your diagram appears here.</p>
+          </div>
+
+          <div class="flow-loading" id="flowLoading">
+            <div class="skeleton-flow">
+              <span class="sk-node"></span><span class="sk-line"></span>
+              <span class="sk-node"></span><span class="sk-line"></span>
+              <span class="sk-node diamond"></span><span class="sk-line"></span>
+              <div class="sk-branch"><span class="sk-node sm"></span><span class="sk-node sm"></span></div>
+              <div class="sk-sheen"></div>
+            </div>
+            <div class="loading-label"><span class="ai-orb"></span><span id="loadingText">Generating…</span><span class="dots"><i></i><i></i><i></i></span></div>
+          </div>
+
+          <div class="flow-render" id="flowRender"></div>
+        </div>
+
+        <!-- Node / generation properties -->
+        <div class="detail-panel glass" id="detailPanel" hidden>
+          <div class="dp-head">
+            <div class="dp-title"><span class="material-symbols-outlined" style="font-size:18px;color:var(--primary)">info</span><b>Generation Details</b></div>
+            <button class="icon-btn" id="dpClose"><span class="material-symbols-outlined" style="font-size:18px">close</span></button>
+          </div>
+          <div class="dp-field"><label class="mono">Output Type</label><div class="dp-box" id="dpType">—</div></div>
+          <div class="dp-field" id="dpMatchWrap" hidden>
+            <label class="mono">House-Style Match</label>
+            <div class="dp-match"><div class="bar"><span id="dpMatchFill"></span></div><span class="dp-match-val" id="dpMatchVal"></span></div>
+            <div class="dp-ref muted" id="dpRef"></div>
+          </div>
+          <div class="dp-field"><label class="mono">Logic Trace</label><div class="dp-trace" id="dpTrace"></div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script src="{{ url_for('static', filename='flowcharts.js') }}"></script>
+</body>
+</html>

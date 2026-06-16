@@ -1,0 +1,32 @@
+# ---- secrets / environment ----
+.env
+.env.*
+!.env.example
+
+# ---- python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# ---- virtual environments ----
+venv/
+.venv/
+env/
+
+# ---- generated output ----
+# Proposals (.docx/.xlsx), MOM/SRS/SOW, action items, flowcharts (.mmd),
+# the WorkDrive vector index, and user credentials (users.json) all live here.
+output/
+
+# ---- office temp / lock files (e.g. ~$Proposal.xlsx) ----
+~$*
+
+# ---- editor / tooling / OS ----
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

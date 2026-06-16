@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Capture — Helios Tech Labs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='capture.css') }}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='heliosBurst.svg') }}">
+</head>
+<body>
+<div class="bg-atmosphere"></div>
+
+<div class="workspace">
+  <header class="appbar">
+    <div class="appbar-left">
+      <span class="brand-title">Helios Tech Labs</span>
+      <nav class="topnav">
+        <a href="{{ url_for('dashboard.dashboard') }}">Meetings</a>
+        <a class="active" href="{{ url_for('dashboard.capture') }}">Live Capture</a>
+        <a href="{{ url_for('index') }}">Proposals</a>
+        <a href="{{ url_for('dashboard.flowcharts') }}">Flowcharts</a>
+        <a href="{{ url_for('dashboard.insights') }}">Insights</a>
+      </nav>
+    </div>
+    <div class="appbar-right">
+      <span class="chip live"><span class="dot"></span> {{ transcribe_info.provider|capitalize }} STT</span>
+      <span class="avatar" title="{{ user_email }}">{{ (user_email or 'U')[0]|upper }}</span>
+    </div>
+  </header>
+
+  <div class="ws-body">
+    <aside class="sidenav" id="sidebar">
+      <div class="sn-profile">
+        <div class="logo-mark"><div class="star"><svg viewBox="0 0 100 100"><path d="M50 0L55 35L90 35L60 55L75 90L50 70L25 90L40 55L10 35L45 35Z"></path></svg></div><div class="core"><i></i></div></div>
+        <div class="sn-prof-text"><b>Helios Tech Labs</b><span class="mono">Pro Plan</span></div>
+        <button class="icon-btn" id="sideToggle" title="Toggle sidebar"><span class="material-symbols-outlined">dock_to_right</span></button>
+      </div>
+      <nav class="sn-nav">
+        <a class="sn-item" href="{{ url_for('dashboard.dashboard') }}"><span class="material-symbols-outlined">video_chat</span><span class="t">Meetings</span></a>
+        <a class="sn-item active" href="{{ url_for('dashboard.capture') }}"><span class="material-symbols-outlined">graphic_eq</span><span class="t">Live Capture</span></a>
+        <a class="sn-item" href="{{ url_for('index') }}"><span class="material-symbols-outlined">description</span><span class="t">Proposals</span></a>
+        <a class="sn-item" href="{{ url_for('dashboard.flowcharts') }}"><span class="material-symbols-outlined">account_tree</span><span class="t">Flowcharts</span></a>
+        <a class="sn-item" href="{{ url_for('dashboard.insights') }}"><span class="material-symbols-outlined">insights</span><span class="t">Insights</span></a>
+      </nav>
+      <div class="sn-foot" style="margin-top:auto">
+        <a class="sn-item" href="{{ url_for('logout') }}"><span class="material-symbols-outlined">logout</span><span class="t">Log out</span></a>
+      </div>
+    </aside>
+
+    <main class="cap-main">
+      <header class="cap-head">
+        <h1>Live Capture</h1>
+        <p class="muted">Record or upload any external call (Teams · Zoom · Meet) — transcribed on your side, then analysed. Nothing is requested from the client.</p>
+      </header>
+
+      <div class="cap-grid">
+        <!-- left: capture + transcript -->
+        <section class="card glass">
+          <div class="card-head">
+            <span class="ic"><span class="material-symbols-outlined">radio_button_checked</span></span>
+            <div><h2>Capture</h2><p class="muted">Record the call tab audio + your mic, or upload a recording</p></div>
+          </div>
+          <hr class="hairline">
+
+          <div class="consent">
+            <span class="material-symbols-outlined">info</span>
+            <span>Please tell participants the call is being transcribed for internal notes before you start.</span>
+          </div>
+
+          <div class="rec-row">
+            <button class="btn rec" id="recordBtn"><span class="rec-dot"></span> Record call</button>
+            <button class="btn btn-ghost" id="stopBtn" disabled><span class="material-symbols-outlined" style="font-size:16px">stop</span> Stop</button>
+            <span class="rec-timer mono" id="recTimer" hidden>00:00</span>
+            <label class="btn btn-ghost" id="uploadAudioBtn"><span class="material-symbols-outlined" style="font-size:16px">upload</span> Upload audio
+              <input type="file" id="audioFile" accept="audio/*,video/mp4,video/webm" hidden>
+            </label>
+          </div>
+          <div class="rec-status mono" id="recStatus">Idle</div>
+
+          <textarea id="transcript" rows="12" placeholder="Transcript appears here as the call is captured — or paste notes directly…"></textarea>
+
+          <div class="cap-actions">
+            <label class="chk"><input type="checkbox" id="saveWd"> <span class="mono">Save outputs to WorkDrive</span></label>
+            <button class="btn btn-primary" id="analyzeBtn">⚡ Analyze</button>
+          </div>
+        </section>
+
+        <!-- right: client intelligence (same engine as Meetings) -->
+        <section class="card glass" id="resultCard">
+          <div class="card-head">
+            <span class="ic violet"><span class="material-symbols-outlined">neurology</span></span>
+            <div><h2>Client Intelligence</h2><p class="muted">Classification, mood & document routing</p></div>
+          </div>
+          <hr class="hairline">
+          <div id="resultEmpty" class="muted">Capture or paste a transcript and hit Analyze.</div>
+          <div id="resultBody" hidden>
+            <div class="classify">
+              <span class="badge" id="clsBadge">—</span>
+              <div class="conf">
+                <div class="conf-meta"><span class="mono">Confidence</span><span class="mono" id="confText"></span></div>
+                <div class="bar"><span id="confFill"></span></div>
+              </div>
+            </div>
+            <div class="sentiment" id="sentimentBox"></div>
+            <div class="kv-grid" id="kvGrid"></div>
+            <h3 class="sec mono">Recommended Actions</h3>
+            <div class="actions" id="actions"></div>
+            <div id="outputs" class="outputs"></div>
+            <div id="flowWrap" class="flow" hidden>
+              <h3 class="sec mono">System Flowchart</h3>
+              <div class="flow-tools"><button class="btn btn-ghost" id="pngBtn">⬇ PNG</button><button class="btn btn-ghost" id="svgBtn">⬇ SVG</button></div>
+              <div id="flowRender" class="flow-render"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script src="{{ url_for('static', filename='capture.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proposal Workspace — Helios Tech Labs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='heliosBurst.svg') }}">
+</head>
+<body>
+<div class="bg-atmosphere"></div>
+
+<div class="workspace">
+  <!-- ============ TOP APP BAR ============ -->
+  <header class="appbar">
+    <div class="appbar-left">
+      <span class="brand-title">Helios Tech Labs</span>
+      <nav class="topnav">
+        <a href="{{ url_for('dashboard.dashboard') }}">Meetings</a>
+        <a href="{{ url_for('dashboard.capture') }}">Live Capture</a>
+        <a class="active" href="{{ url_for('index') }}">Proposals</a>
+        <a href="{{ url_for('dashboard.flowcharts') }}">Flowcharts</a>
+        <a href="{{ url_for('dashboard.insights') }}">Insights</a>
+      </nav>
+    </div>
+    <div class="appbar-right">
+      <div class="search">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" id="historySearch" placeholder="Search proposals…">
+      </div>
+      <a class="btn btn-primary new-project" href="{{ url_for('index') }}">New Project</a>
+      <span class="avatar" title="{{ user_email }}">{{ (user_email or 'U')[0]|upper }}</span>
+    </div>
+  </header>
+
+  <div class="ws-body">
+    <!-- ============ SIDE NAV ============ -->
+    <aside class="sidenav" id="sidebar">
+      <div class="sn-profile">
+        <div class="logo-mark"><div class="star"><svg viewBox="0 0 100 100"><path d="M50 0L55 35L90 35L60 55L75 90L50 70L25 90L40 55L10 35L45 35Z"></path></svg></div><div class="core"><i></i></div></div>
+        <div class="sn-prof-text"><b>Helios Tech Labs</b><span class="mono">Pro Plan</span></div>
+        <button class="icon-btn" id="sideToggle" title="Toggle sidebar"><span class="material-symbols-outlined">dock_to_right</span></button>
+      </div>
+
+      <nav class="sn-nav">
+        <a class="sn-item" href="{{ url_for('dashboard.dashboard') }}"><span class="material-symbols-outlined">video_chat</span><span class="t">Meetings</span></a>
+        <a class="sn-item" href="{{ url_for('dashboard.capture') }}"><span class="material-symbols-outlined">graphic_eq</span><span class="t">Live Capture</span></a>
+        <a class="sn-item active" href="{{ url_for('index') }}"><span class="material-symbols-outlined">description</span><span class="t">Proposals</span></a>
+        <a class="sn-item" href="{{ url_for('dashboard.flowcharts') }}"><span class="material-symbols-outlined">account_tree</span><span class="t">Flowcharts</span></a>
+        <a class="sn-item" href="{{ url_for('dashboard.insights') }}"><span class="material-symbols-outlined">insights</span><span class="t">Insights</span></a>
+      </nav>
+
+      <button class="btn btn-primary sn-cta" id="newChat"><span class="material-symbols-outlined">add</span><span class="t">New Chat</span></button>
+
+      <!-- WorkDrive status -->
+      <div class="wd-block" id="wdBlock">
+        <div class="wd-row"><span class="wd-dot" id="wdDot"></span><span class="wd-label">WorkDrive</span></div>
+        <div class="wd-detail" id="wdDetail">Checking…</div>
+        <button class="wd-sync" id="wdSync" disabled>Sync</button>
+      </div>
+
+      <div class="sn-foot">
+        <a class="sn-item" href="{{ url_for('logout') }}"><span class="material-symbols-outlined">logout</span><span class="t">Log out</span></a>
+      </div>
+    </aside>
+
+    <!-- ============ RECENT PROPOSALS COLUMN ============ -->
+    <section class="proposals-col glass">
+      <div class="pc-head">
+        <h2>Recent Proposals</h2>
+        <p class="muted" id="historyCount">Your generated proposals</p>
+      </div>
+      <div class="pc-scroll">
+        <div class="side-section" id="todayHeader" hidden>Today</div>
+        <div class="history" id="todayList"></div>
+        <div class="side-section" id="olderHeader" hidden>Older</div>
+        <div class="history" id="olderList"></div>
+      </div>
+    </section>
+
+    <!-- ============ MAIN FOCUS ============ -->
+    <main class="focus">
+      <div class="chat-view" id="chat">
+        <div class="center-logo" id="centerLogo">
+          <div class="ai-ring">
+            <div class="ai-ring-glow"></div>
+            <div class="ai-ring-outer">
+              <div class="ai-ring-orbit"><i></i></div>
+              <span class="material-symbols-outlined ai-ring-icon">neurology</span>
+            </div>
+          </div>
+          <h1 class="hero-title">Intelligent Proposal Generation</h1>
+          <p class="hero-desc">Paste a client requirement or upload a project brief below. Past proposals are auto-matched from WorkDrive to generate a realistic, on-brand proposal.</p>
+          <div class="hero-cards">
+            <div class="hero-card">
+              <span class="hc-ic"><span class="material-symbols-outlined">auto_awesome</span></span>
+              <div><b>Context Aware</b><span class="muted">Matched from WorkDrive</span></div>
+            </div>
+            <div class="hero-card violet">
+              <span class="hc-ic"><span class="material-symbols-outlined">verified</span></span>
+              <div><b>Grounded &amp; Realistic</b><span class="muted">No invented scope</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- attached references -->
+      <div class="attachments" id="attachments" hidden></div>
+
+      <!-- composer -->
+      <div class="composer-wrap">
+        <div class="composer glass">
+          <textarea id="msg" rows="1" placeholder="Paste requirements here, or upload a client brief — past proposals are auto-matched from WorkDrive"></textarea>
+          <div class="composer-row">
+            <div class="model-pill">
+              <span class="material-symbols-outlined mp-ic">smart_toy</span>
+              <select id="provider">
+                <option value="openai" {{ '' if providers.openai else 'disabled' }}>OpenAI{{ '' if providers.openai else ' — add key' }}</option>
+                <option value="gemini" {{ '' if providers.gemini else 'disabled' }}>Gemini{{ '' if providers.gemini else ' — add key' }}</option>
+                <option value="claude" {{ '' if providers.claude else 'disabled' }}>Claude{{ '' if providers.claude else ' — add key' }}</option>
+              </select>
+              <span class="material-symbols-outlined chev">expand_more</span>
+            </div>
+
+            <div class="format-toggle" id="formatToggle" title="Output format">
+              <button type="button" class="fmt-btn active" data-fmt="docx">.docx</button>
+              <button type="button" class="fmt-btn" data-fmt="xlsx">.xlsx</button>
+            </div>
+
+            <button class="circle-btn" id="attach" title="Attach client brief"><span class="material-symbols-outlined">attach_file</span></button>
+            <input type="file" id="fileInput" multiple accept=".docx,.pdf,.txt,.xlsx,.csv" hidden>
+
+            <button class="circle-btn send" id="go" title="Send"><span class="material-symbols-outlined">arrow_upward</span></button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ STATUS BAR ============ -->
+  <footer class="statusbar">
+    <div class="sb-left">
+      <span class="sb-dot"></span><span class="mono">AI Engine Online</span>
+      <span class="sb-sep"></span><span class="mono">Provider: <b id="sbProvider">OpenAI</b></span>
+    </div>
+    <div class="sb-right">
+      <span class="mono">v4.0.2</span>
+      <span class="sb-sep"></span><span class="mono"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px">cloud_done</span> Synced</span>
+    </div>
+  </footer>
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+<script>
+  // proposal count + status-bar provider mirror (cosmetic, no app.js changes)
+  (function () {
+    try {
+      const n = (JSON.parse(localStorage.getItem("helios.history.v1") || "[]")).length;
+      document.getElementById("historyCount").textContent =
+        n ? `${n} proposal${n > 1 ? "s" : ""} in workspace` : "No proposals yet";
+    } catch {}
+    const prov = document.getElementById("provider"), sb = document.getElementById("sbProvider");
+    const sync = () => { sb.textContent = prov.options[prov.selectedIndex]?.text.replace(/ —.*/, "") || "OpenAI"; };
+    prov.addEventListener("change", sync); sync();
+    // live-search the proposal list
+    const search = document.getElementById("historySearch");
+    search.addEventListener("input", () => {
+      const q = search.value.toLowerCase();
+      document.querySelectorAll("#todayList .history-item, #olderList .history-item")
+        .forEach(b => { b.style.display = b.textContent.toLowerCase().includes(q) ? "" : "none"; });
+    });
+  })();
+</script>
+</body>
+</html>

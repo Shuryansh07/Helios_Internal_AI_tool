@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meeting Intelligence — Helios Tech Labs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='heliosBurst.svg') }}">
+</head>
+<body>
+<div class="bg-atmosphere"></div>
+
+<div class="shell">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="side glass">
+    <div class="brand">
+      <div class="logo-mark">
+        <div class="star"><svg viewBox="0 0 100 100"><path d="M50 0L55 35L90 35L60 55L75 90L50 70L25 90L40 55L10 35L45 35Z"></path></svg></div>
+        <div class="core"><i></i></div>
+      </div>
+      <div class="brand-text"><b>Helios Tech Labs</b><span class="mono">Pro Plan</span></div>
+    </div>
+
+    <nav class="nav">
+      <a class="nav-item active" href="{{ url_for('dashboard.dashboard') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Meetings</span>
+      </a>
+      <a class="nav-item" href="{{ url_for('dashboard.capture') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></svg>
+        <span>Live Capture</span>
+      </a>
+      <a class="nav-item" href="{{ url_for('index') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        <span>Proposals</span>
+      </a>
+      <a class="nav-item" href="{{ url_for('dashboard.flowcharts') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9" y="2" width="6" height="5" rx="1"/><rect x="3" y="17" width="6" height="5" rx="1"/><rect x="15" y="17" width="6" height="5" rx="1"/><path d="M12 7v4M6 17v-2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"/></svg>
+        <span>Flowcharts</span>
+      </a>
+      <a class="nav-item" href="{{ url_for('dashboard.insights') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 2 4-6"/></svg>
+        <span>Insights</span>
+      </a>
+    </nav>
+
+    <button class="btn btn-primary side-cta" id="syncMeet">Sync Zoho Meet</button>
+
+    <div class="side-meetings">
+      <div id="meetingsPanel" class="meetings" hidden></div>
+      <div id="meetingsEmpty" class="mono side-empty">Zoho Meetings — manual mode</div>
+    </div>
+
+    <div class="side-foot">
+      {% if user_email %}<div class="mono" style="margin-bottom:8px">{{ user_email }}</div>{% endif %}
+      <a class="nav-item" href="{{ url_for('logout') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Log out</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <header class="topbar">
+      <h1>Meeting Intelligence</h1>
+      <div class="topbar-right">
+        <span class="chip live"><span class="dot"></span> AI Engine Online</span>
+        <span class="avatar">{{ (user_email or 'U')[0]|upper }}</span>
+      </div>
+    </header>
+    <p class="lede muted">Turn a meeting transcript into the right documents — automatically.</p>
+
+    <!-- Quick stats -->
+    <section class="stats" id="stats">
+      <div class="stat glass"><div class="stat-k" id="statIndexed">—</div><div class="stat-l mono">Proposals Indexed</div></div>
+      <div class="stat glass"><div class="stat-k" id="statDocs">0</div><div class="stat-l mono">Docs Generated</div></div>
+      <div class="stat glass"><div class="stat-k" id="statRatio">0 / 0</div><div class="stat-l mono">New / Existing</div></div>
+      <div class="stat glass"><div class="stat-k" id="statMeetings">Manual</div><div class="stat-l mono">Meetings Source</div></div>
+    </section>
+
+    <div class="grid">
+      <!-- Left: transcript processing -->
+      <section class="card glass">
+        <div class="card-head">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>
+          <div><h2>Transcript Processing</h2><p class="muted">Upload or paste a meeting transcript for AI synthesis</p></div>
+          <span class="chip src-tag" id="srcTag" hidden>
+            <span class="dot"></span><span id="srcTagText"></span>
+            <span class="src-x" id="srcTagClear" title="Clear">×</span>
+          </span>
+        </div>
+        <hr class="hairline">
+
+        <div class="dropzone" id="dropzone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" class="dz-ic"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M20 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2"/></svg>
+          <div class="dz-title">Drop transcript files here</div>
+          <div class="muted small" id="meetingsNote">Supports .txt, .vtt, .srt, .docx, .pdf — or paste below</div>
+          <button class="btn btn-ghost" id="uploadBtn">📎 Browse files</button>
+          <input type="file" id="fileInput" accept=".txt,.vtt,.srt,.docx,.pdf" multiple hidden>
+        </div>
+
+        <textarea id="transcript" rows="7" placeholder="…or paste the meeting transcript here"></textarea>
+        <div id="uploadInfo" class="muted small"></div>
+
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="saveWd"> <span class="mono">Save outputs to WorkDrive</span></label>
+          <button class="btn btn-primary analyze" id="analyzeBtn">⚡ Analyze Transcript</button>
+        </div>
+      </section>
+
+      <!-- Right: client intelligence -->
+      <section class="card glass" id="resultCard">
+        <div class="card-head">
+          <span class="ic violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg></span>
+          <div><h2>Client Intelligence</h2><p class="muted">Classification, intent & document routing</p></div>
+        </div>
+        <hr class="hairline">
+
+        <div id="resultEmpty" class="muted">Analyze a transcript to see the classification and generate documents.</div>
+        <div id="resultBody" hidden>
+          <div class="classify">
+            <span class="badge" id="clsBadge">—</span>
+            <div class="conf">
+              <div class="conf-meta"><span class="mono">Confidence</span><span class="mono" id="confText"></span></div>
+              <div class="bar"><span id="confFill"></span></div>
+            </div>
+          </div>
+          <div class="sentiment" id="sentimentBox"></div>
+          <div class="kv-grid" id="kvGrid"></div>
+
+          <h3 class="sec mono">Recommended Actions</h3>
+          <div class="actions" id="actions"></div>
+          <div id="outputs" class="outputs"></div>
+
+          <div id="flowWrap" class="flow" hidden>
+            <h3 class="sec mono">System Flowchart</h3>
+            <div class="flow-tools">
+              <button class="btn btn-ghost" id="pngBtn">⬇ PNG</button>
+              <button class="btn btn-ghost" id="svgBtn">⬇ SVG</button>
+            </div>
+            <div id="flowRender" class="flow-render"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="statusbar">
+      <span class="mono"><span class="chip live" style="padding:2px 8px"><span class="dot"></span></span> System Status: Nominal</span>
+      <span class="mono">Synthetic Intelligence System · v4.0.2</span>
+    </footer>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>window.MEETINGS_CONFIGURED = {{ 'true' if meetings_status.configured else 'false' }};</script>
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>
