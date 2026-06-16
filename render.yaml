@@ -30,9 +30,31 @@ services:
       - key: COMPANY_NAME
         sync: false
 
-      # ---- Optional: add only if you use them (leave blank otherwise) ----
+      # ---- Model / tuning config (non-secret; safe to commit) ----
       - key: OPENAI_MODEL
         value: gpt-4o
+      - key: OPENAI_DASHBOARD_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_IMAGE_MODEL          # flowchart "AI Image" render mode
+        value: gpt-image-2
+      - key: TRANSCRIPT_CHAR_LIMIT
+        value: "40000"
+      - key: PROPOSAL_REQUIREMENT_CHAR_LIMIT
+        value: "24000"
+      - key: PROPOSAL_REFERENCES_CHAR_LIMIT
+        value: "16000"
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+
+      # ---- Transcription (Live Capture). No HF token -> falls back to OpenAI Whisper ----
+      - key: TRANSCRIBE_PROVIDER
+        value: huggingface
+      - key: HF_ASR_MODEL
+        value: openai/whisper-large-v3
+      - key: OPENAI_ASR_MODEL
+        value: whisper-1
+
+      # ---- API keys (secret; set in dashboard) ----
       - key: GEMINI_API_KEY
         sync: false
       - key: CLAUDE_API_KEY
@@ -46,7 +68,17 @@ services:
         sync: false
       - key: SMTP_APP_PASSWORD
         sync: false
-      # Zoho WorkDrive — only needed for auto-matching past proposals
+
+      # ---- Zoho: data center + WorkDrive + Meetings + Flowchart library ----
+      - key: ZOHO_DC
+        value: com
+      - key: ZOHO_MEETINGS_ENABLED        # live Meeting Intelligence dashboard
+        value: "true"
+      - key: ZOHO_MEETINGS_ZSOID
+        value: "776972991"
+      - key: ZOHO_FLOWCHART_FOLDER_ID     # Process Architect flowchart style library
+        value: q1kaa6e8fc7f4a4204923984a9a6e05fd0414
+      # Secrets (set in dashboard):
       - key: ZOHO_CLIENT_ID
         sync: false
       - key: ZOHO_CLIENT_SECRET
