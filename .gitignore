@@ -1,7 +1,6 @@
 # ---- secrets / environment ----
 .env
 .env.*
-!.env.example
 
 # ---- python ----
 __pycache__/

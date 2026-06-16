@@ -26,6 +26,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output")
 TEMPLATE_DOCX = os.path.join(BASE_DIR, "template_docx", "template.docx")
 
+# Ensure the output dir exists at import time. Under gunicorn (production) the
+# __main__ block below never runs, so we can't rely on it to create OUTPUT_DIR.
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 app = Flask(__name__)
 
 # Session signing key. If FLASK_SECRET_KEY isn't set we mint a random one — sessions
@@ -299,5 +303,8 @@ def download(filename):
 
 
 if __name__ == "__main__":
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    app.run(debug=True, port=5000)
+    # Local development only. In production, gunicorn serves `app` (see render.yaml)
+    # and this block is not executed.
+    port = int(os.getenv("PORT", "5000"))
+    debug = os.getenv("FLASK_DEBUG", "1") == "1"
+    app.run(debug=debug, port=port)

@@ -1,0 +1,57 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploy: push this repo to GitHub, then in Render: New + > Blueprint > pick the repo.
+# Render reads this file and creates the service. Secret env vars (sync: false) are
+# prompted for in the dashboard on first deploy — they are NOT stored in the repo.
+services:
+  - type: web
+    name: project-proposal-automation
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # 1 worker: the OTP store and WorkDrive index live in process memory, so a single
+    # worker keeps them consistent. --threads 4 gives concurrency; --timeout 180 keeps
+    # gunicorn from killing slow LLM / embedding / transcription requests (default is 30s).
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 180
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+      # Stable random session-signing key, generated once by Render and kept across
+      # deploys — so logged-in sessions survive restarts.
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+
+      # ---- Required: set these in the Render dashboard ----
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_INITIAL_PASSWORD
+        sync: false
+      - key: COMPANY_NAME
+        sync: false
+
+      # ---- Optional: add only if you use them (leave blank otherwise) ----
+      - key: OPENAI_MODEL
+        value: gpt-4o
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CLAUDE_API_KEY
+        sync: false
+      - key: COMPANY_EMAIL
+        sync: false
+      - key: COMPANY_WEBSITE
+        sync: false
+      # SMTP — only needed for "Forgot password" OTP emails
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_APP_PASSWORD
+        sync: false
+      # Zoho WorkDrive — only needed for auto-matching past proposals
+      - key: ZOHO_CLIENT_ID
+        sync: false
+      - key: ZOHO_CLIENT_SECRET
+        sync: false
+      - key: ZOHO_REFRESH_TOKEN
+        sync: false
+      - key: ZOHO_WORKDRIVE_FOLDER_ID
+        sync: false
